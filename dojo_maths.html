@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dojo Math Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: #fff;
+      text-align: center;
+      padding: 2rem;
+    }
+    .card {
+      background: #1f1f1f;
+      padding: 2rem;
+      margin: 1rem auto;
+      border-radius: 15px;
+      max-width: 600px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+    }
+    button {
+      background-color: #00c853;
+      color: white;
+      cursor: pointer;
+    }
+    .hidden {
+      display: none;
+    }
+    .correct {
+      color: #00e676;
+    }
+    .wrong {
+      color: #ff1744;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card" id="intro">
+    <h1>🧠 Dojo Math Quiz</h1>
+    <p>The Game Designed to Keep Your Mind Sharp with Engaging Math Problems.</p>
+    <input type="text" id="nameInput" placeholder="Enter Full Name (min 8 characters)" />
+    <br />
+    <button onclick="startGame()">Start</button>
+    <p id="nameError" class="wrong hidden">Please enter a name longer than 8 characters.</p>
+  </div>
+
+  <div class="card hidden" id="rules">
+    <h2>Game Rules</h2>
+    <ul style="text-align: left;">
+      <li>You get 3 attempts for the entire level</li>
+      <li>Answer 10 questions correctly to level up</li>
+      <li>Each level gets progressively harder</li>
+    </ul>
+    <button onclick="showQuiz()">I'm Ready!</button>
+  </div>
+
+  <div class="card hidden" id="quiz">
+    <h2 id="levelTitle">Level 1</h2>
+    <p id="question"></p>
+    <input type="number" id="answerInput" placeholder="Your answer" />
+    <br />
+    <button onclick="submitAnswer()">Submit</button>
+    <p id="feedback"></p>
+    <p id="attemptsInfo"></p>
+    <p id="progressInfo"></p>
+  </div>
+
+  <div class="card hidden" id="result">
+    <h2>Level Complete</h2>
+    <p id="resultInfo"></p>
+    <button onclick="nextLevel()">Next Level</button>
+    <button onclick="restartGame()">Restart</button>
+  </div>
+
+  <script>
+    let level = 1;
+    let questionCount = 0;
+    let correctAnswers = 0;
+    let attemptsLeft = 3;
+    let currentAnswer = 0;
+    let maxNum = 20;
+
+    function startGame() {
+      const name = document.getElementById("nameInput").value.trim();
+      if (name.length <= 8) {
+        document.getElementById("nameError").classList.remove("hidden");
+      } else {
+        document.getElementById("intro").classList.add("hidden");
+        document.getElementById("rules").classList.remove("hidden");
+      }
+    }
+
+    function showQuiz() {
+      document.getElementById("rules").classList.add("hidden");
+      document.getElementById("quiz").classList.remove("hidden");
+      setupQuestion();
+    }
+
+    function setupQuestion() {
+      maxNum = 20 + level * 10;
+      const a = Math.floor(Math.random() * maxNum) + 1;
+      let b = Math.floor(Math.random() * maxNum) + 1;
+      const ops = ['+', '-', '*', '/'];
+      const op = ops[Math.floor(Math.random() * ops.length)];
+
+      let q = `${a} ${op} ${b}`;
+      if (op === '/') {
+        b = b || 1;
+        currentAnswer = Math.floor((a * b) / b);
+        q = `${a * b} / ${b}`;
+      } else {
+        currentAnswer = eval(q);
+      }
+
+      document.getElementById("levelTitle").innerText = `⭐ Level ${level}`;
+      document.getElementById("question").innerText = `Question ${questionCount + 1}: ${q} = ?`;
+      document.getElementById("feedback").innerText = '';
+      document.getElementById("attemptsInfo").innerText = `Attempts left: ${attemptsLeft}`;
+      document.getElementById("progressInfo").innerText = `Correct: ${correctAnswers}/10`;
+      document.getElementById("answerInput").value = '';
+    }
+
+    function submitAnswer() {
+      const input = document.getElementById("answerInput").value;
+      if (!input) return;
+
+      const answer = parseInt(input);
+      const feedback = document.getElementById("feedback");
+
+      if (answer === currentAnswer) {
+        correctAnswers++;
+        feedback.innerText = "✅ Correct!";
+        feedback.className = "correct";
+      } else {
+        attemptsLeft--;
+        feedback.innerText = `❌ Wrong! Attempts left: ${attemptsLeft}`;
+        feedback.className = "wrong";
+      }
+
+      questionCount++;
+
+      if (attemptsLeft === 0 || questionCount === 10) {
+        endLevel();
+      } else {
+        setTimeout(setupQuestion, 1000);
+      }
+    }
+
+    function endLevel() {
+      document.getElementById("quiz").classList.add("hidden");
+      document.getElementById("result").classList.remove("hidden");
+
+      const passed = correctAnswers >= 7;
+      document.getElementById("resultInfo").innerText = passed
+        ? `🎉 Great! You answered ${correctAnswers} questions correctly.`
+        : `😢 You only got ${correctAnswers} correct. Try again?`;
+
+      if (!passed) {
+        document.querySelector("#result button:nth-child(3)").classList.add("hidden");
+      } else {
+        document.querySelector("#result button:nth-child(3)").classList.remove("hidden");
+      }
+    }
+
+    function nextLevel() {
+      level++;
+      questionCount = 0;
+      correctAnswers = 0;
+      attemptsLeft = 3;
+      document.getElementById("result").classList.add("hidden");
+      document.getElementById("quiz").classList.remove("hidden");
+      setupQuestion();
+    }
+
+    function restartGame() {
+      level = 1;
+      questionCount = 0;
+      correctAnswers = 0;
+      attemptsLeft = 3;
+      document.getElementById("result").classList.add("hidden");
+      document.getElementById("intro").classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
